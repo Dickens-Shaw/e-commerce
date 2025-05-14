@@ -1,0 +1,160 @@
+# Cursor 项目开发规范（cursorrules）
+
+---
+
+## 项目结构与 Monorepo 管理
+
+- 推荐采用 monorepo 结构统一管理多端（前端、BFF、后端）及共享代码。
+- 所有端和服务放在 packages 目录下，结构示例：
+
+  ```
+  /packages
+    /web         # 前端 Next.js 应用
+    /bff         # BFF 层 Nest.js 服务
+    /go-service  # Go 微服务
+    /shared      # 公共类型、工具库等
+  ```
+- 各端/服务独立维护自身的配置、脚本、CI/CD 流程，根目录统一管理整体脚本和规范。
+- 推荐使用 pnpm、yarn workspaces、turbo 等工具进行依赖管理和构建优化。
+- 公共类型、工具函数、协议等建议放在 packages/shared，供各端依赖和复用。
+- 统一依赖版本，避免重复安装和版本冲突。
+
+---
+
+## 一、前端（Next.js）开发规范
+
+### 1. 目录与结构
+- 采用小写+短横线命名（如：components/user-center、hooks/use-auth）
+- 主要目录：/app、/components、/hooks、/lib、/styles
+- 每个功能模块单独目录，保持高内聚低耦合
+
+### 2. 技术栈
+- Next.js（App Router）、TypeScript、Tailwind CSS、shadcn/ui
+- 状态管理：SWR 或 React Query
+- 表单：React Hook Form + Zod + useActionState
+
+### 3. 代码风格与命名
+- 变量、函数、组件采用语义化命名（如 isLoading、fetchUserData）
+- 组件、Hooks 使用函数式写法，避免 class
+- 纯函数优先，Hooks 组合，避免重复代码
+- TypeScript 类型优先 interface，简单联合用 type
+- 输入输出均用对象，参数可选项放前，默认值靠后
+- 单行逻辑可省略大括号，复杂逻辑提取为辅助函数
+
+### 4. 组件与模块
+- 组件拆分粒度适中，复用性强
+- Server Component 优先，use client 仅用于需要浏览器 API 或本地状态
+- IO 密集型组件用 <Suspense> 包裹，提供轻量 fallback
+- 错误边界：提供 error.tsx、global-error.tsx
+- 表单用 React Hook Form + Zod + useActionState
+
+### 5. 状态与数据管理
+- 数据请求统一用 SWR/React Query
+- 表单校验用 Zod，服务端/客户端一致
+- TanStack Query 捕获错误，UI 层友好提示
+- Server Action 返回标准化 ActionResponse
+
+### 6. 样式与 UI
+- 优先使用 Tailwind CSS，组件库用 shadcn/ui
+- 保持 UI 风格一致，避免多 UI 库混用
+- 移动优先，响应式设计
+- 组件样式隔离，避免全局污染
+- 图片用 Next.js <Image> 或原生 lazy，指定宽高
+
+### 7. 性能与优化
+- SSR/SSG 混合渲染，关键路由预渲染
+- 非关键页面懒加载，启用 tree-shaking、SWC/minify、代码分割
+
+### 8. 安全与合规
+- 前端接口调用需防止 XSS/CSRF
+- 敏感信息不在前端暴露
+
+### 9. 文档与协作
+- 重要模块、API、组件需有注释和说明
+- 代码变更需走 PR，CI 自动检查 lint/test/build
+- 需求、设计、接口、开发计划文档同步维护
+
+---
+
+## 二、BFF（Nest.js）开发规范
+
+### 1. 目录与结构
+- 遵循官方推荐（如 /modules、/common、/config、/dto、/guards 等）
+- 控制器（Controller）只负责路由和参数校验，业务逻辑放在 Service 层
+
+### 2. 技术栈
+- Nest.js（TypeScript）、REST 优先、JWT、Passport.js、RBAC
+- 配置管理用 @nestjs/config，敏感信息用环境变量
+
+### 3. 代码风格与接口
+- DTO（数据传输对象）和参数校验统一用 class-validator + class-transformer
+- 权限控制用 Guard + Decorator 实现，RBAC 逻辑集中管理
+- 认证统一用 Passport.js + JWT，token 相关逻辑抽离为 AuthModule
+- 所有接口返回统一格式（如 { code, message, data }）
+- 错误处理统一抛出 HttpException 或自定义异常，前端可识别 code
+- API 文档用 Swagger 自动生成，注释齐全
+- 单元测试用 Jest，Service 层和核心逻辑需覆盖
+- 接口安全：防止 SQL 注入、XSS、CSRF，接口鉴权必做
+
+### 4. 日志与监控
+- 日志记录请求、响应、异常，支持 traceId
+- 接入 Prometheus、OpenTelemetry 等监控链路
+
+### 5. CI/CD
+- 代码格式化用 eslint/prettier
+- 配置、密钥等敏感信息用 .env 管理，不入库
+- Dockerfile、CI/CD 脚本齐全，支持自动化部署
+
+---
+
+## 三、后端（Go）开发规范
+
+### 1. 目录与结构
+- 推荐分层（/internal/模块、/pkg、/config、/cmd、/api、/model、/service、/repository）
+- 每个微服务独立 main.go，支持单独部署和扩展
+
+### 2. 技术栈
+- Gin 或 Fiber、gorm、MySQL、Redis、Swagger、Viper、zap
+
+### 3. 代码风格与接口
+- 路由分组清晰，RESTful 风格
+- 配置用 Viper，支持多环境切换
+- 日志用 zap，日志格式统一，支持 traceId
+- 数据库操作用 gorm，model 层定义结构体，repository 层封装数据访问
+- Redis 用于缓存、分布式锁、限流等，操作封装为独立模块
+- 错误处理用自定义 error 类型，包含 code/message，接口返回统一结构
+- 接口参数校验用 binding/tag，必要时用 go-playground/validator
+- API 文档用 swaggo 自动生成，注释齐全
+- 单元测试用 Go test，核心逻辑需覆盖
+- 数据库迁移脚本需管理（如 migrate 工具）
+- 依赖管理用 go mod，定期升级依赖
+
+### 4. 日志与监控
+- 日志、监控、告警、链路追踪（如 Prometheus、OpenTelemetry）需接入
+
+### 5. CI/CD
+- Dockerfile、Makefile、CI/CD 脚本齐全，支持自动化部署
+- 代码格式化用 gofmt
+- 配置、密钥等敏感信息用 .env 管理，不入库
+
+---
+
+## 四、通用规范
+
+### 1. 配置与安全
+- 所有服务配置、密钥、连接串等均用环境变量管理，不写死在代码
+- 接口幂等性、分布式 ID、状态机、定时任务等需有专门设计
+- 所有接口参数/响应用 Zod（前端）、class-validator（BFF）、validator（Go）校验
+- 依赖包定期升级，关注安全漏洞
+
+### 2. 代码审查与协作
+- 代码提交前本地自检，保证无 lint/error
+- 代码变更需走 Pull Request，团队审查
+- 重要变更需有变更记录和说明
+
+### 3. 文档与测试
+- 需求、设计、接口、开发计划文档同步维护
+- 重要模块、API、组件需有注释和说明
+- 单元测试、集成测试、端到端测试覆盖核心业务
+
+---
