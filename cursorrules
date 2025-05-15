@@ -9,7 +9,8 @@
 
   ```
   /packages
-    /web         # 前端 Next.js 应用
+    /web         # C端商城网站（Next.js 用户前台）
+    /admin       # 后台管理系统（Next.js + Ant Design/Chakra UI）
     /bff         # BFF 层 Nest.js 服务
     /go-service  # Go 微服务
     /shared      # 公共类型、工具库等
@@ -21,55 +22,75 @@
 
 ---
 
-## 一、前端（Next.js）开发规范
+## 一、前端（Next.js C端商城）开发规范
 
-### 1. 目录与结构
-- 采用小写+短横线命名（如：components/user-center、hooks/use-auth）
+### 1. C端商城网站（/web）
+- 采用小写+短横线命名（如：components/product-list、hooks/use-cart）
 - 主要目录：/app、/components、/hooks、/lib、/styles
 - 每个功能模块单独目录，保持高内聚低耦合
+- 典型页面：/app/(home|product|cart|order|user|activity)
+- UI库：Tailwind CSS、shadcn/ui
+- SSR/SSG 混合渲染，移动优先，响应式设计
+- 变量、函数、组件采用语义化命名（如 isLoading、fetchProductList、addToCart）
+- 组件、Hooks 使用函数式写法，避免 class
+- 纯函数优先，Hooks 组合，避免重复代码
+- 其他规范同前
 
-### 2. 技术栈
+### 2. 后台管理系统（/admin）
+- 采用小写+短横线命名（如：components/user-table、hooks/use-permission）
+- 主要目录：/app、/components、/hooks、/lib、/styles
+- 每个功能模块单独目录，保持高内聚低耦合
+- 典型页面：/app/(dashboard|product|order|user|activity|permission)
+- UI库：Ant Design + Pro 组件库 或 Chakra UI
+- 管理端专属：表格、筛选、批量操作、权限分级、数据大盘、日志审计
+- 变量、函数、组件采用语义化命名（如 isLoading、fetchUserList、updateProductStatus）
+- 组件、Hooks 使用函数式写法，避免 class
+- 纯函数优先，Hooks 组合，避免重复代码
+- SSR/SSG 支持，响应式布局适配大屏
+- 其他规范同前
+
+### 3. 技术栈
 - Next.js（App Router）、TypeScript、Tailwind CSS、shadcn/ui
 - 状态管理：SWR 或 React Query
 - 表单：React Hook Form + Zod + useActionState
 
-### 3. 代码风格与命名
-- 变量、函数、组件采用语义化命名（如 isLoading、fetchUserData）
+### 4. 代码风格与命名
+- 变量、函数、组件采用语义化命名（如 isLoading、fetchProductList、addToCart）
 - 组件、Hooks 使用函数式写法，避免 class
 - 纯函数优先，Hooks 组合，避免重复代码
 - TypeScript 类型优先 interface，简单联合用 type
 - 输入输出均用对象，参数可选项放前，默认值靠后
 - 单行逻辑可省略大括号，复杂逻辑提取为辅助函数
 
-### 4. 组件与模块
+### 5. 组件与模块
 - 组件拆分粒度适中，复用性强
 - Server Component 优先，use client 仅用于需要浏览器 API 或本地状态
 - IO 密集型组件用 <Suspense> 包裹，提供轻量 fallback
 - 错误边界：提供 error.tsx、global-error.tsx
 - 表单用 React Hook Form + Zod + useActionState
 
-### 5. 状态与数据管理
+### 6. 状态与数据管理
 - 数据请求统一用 SWR/React Query
 - 表单校验用 Zod，服务端/客户端一致
 - TanStack Query 捕获错误，UI 层友好提示
 - Server Action 返回标准化 ActionResponse
 
-### 6. 样式与 UI
+### 7. 样式与 UI
 - 优先使用 Tailwind CSS，组件库用 shadcn/ui
 - 保持 UI 风格一致，避免多 UI 库混用
 - 移动优先，响应式设计
 - 组件样式隔离，避免全局污染
 - 图片用 Next.js <Image> 或原生 lazy，指定宽高
 
-### 7. 性能与优化
+### 8. 性能与优化
 - SSR/SSG 混合渲染，关键路由预渲染
 - 非关键页面懒加载，启用 tree-shaking、SWC/minify、代码分割
 
-### 8. 安全与合规
+### 9. 安全与合规
 - 前端接口调用需防止 XSS/CSRF
 - 敏感信息不在前端暴露
 
-### 9. 文档与协作
+### 10. 文档与协作
 - 重要模块、API、组件需有注释和说明
 - 代码变更需走 PR，CI 自动检查 lint/test/build
 - 需求、设计、接口、开发计划文档同步维护

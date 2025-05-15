@@ -1,0 +1,9 @@
+{
+  "features": {
+    "docs": [
+      "system.md",
+      "schedule.md",
+      "cursorrules"
+    ]
+  }
+}
